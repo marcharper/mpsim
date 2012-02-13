@@ -131,9 +131,14 @@ def run_simulations(param_gen, iters_gen, processes=None, call_backs=None, verbo
         params = itertools.islice(param_gen, 0, iters)
         #print list(itertools.islice(params,0,1))
         pool = multiprocessing.Pool(processes=processes)
-        results = pool.map(simulation, params)
-        pool.close()
-        pool.join()
+        try:
+            results = pool.map(simulation, params)
+            pool.close()
+            pool.join()
+        except KeyboardInterrupt:
+            print 'Control-C received. Exiting.'
+            pool.terminate()
+            exit()
         if call_backs:
             for call_back in call_backs:
                 call_back(results)
