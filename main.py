@@ -128,10 +128,10 @@ def basic_simulation_run(cache, iteration_gen, initial_state_generator, call_bac
 
 def two_type_moran_process_simulations(N=40, fitness_landscape=moran.fitness_static(2.), iterations=10000, per_run=100000, verbose=False, call_backs=None, initial_state_generator=None):
     if not initial_state_generator:
-        initial_state_generator = simulation.constant_generator([N//2, N//2])
+        initial_state_generator = generators.random_state_generator(2,N)
     igen = generators.iterations_generator(iterations, per_run)
     edges = moran.moran_simulation_transitions(N, fitness_landscape)
-    cache = simulation.compile_edges(edges, filename=filename, verbose=False)
+    cache = simulation.compile_edges(edges, verbose=False)
     param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=100000)
     runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
     return runs
@@ -154,7 +154,7 @@ def run_length_batches(Ns=range(6, 60, 3), brange=numpy.arange(0,5.01, 0.1), a=1
             m = moran.rock_scissors_paper(a=a, b=b)
             fitness_landscape = moran.linear_fitness_landscape(m)
             igen = generators.iterations_generator(iterations, per_run)
-            initial_state_generator = simulation.constant_generator((N//3,N//3,N//3))
+            initial_state_generator = generators.constant_generator((N//3,N//3,N//3))
             cache = simulation.compile_edges(edges)
             lengths = run_lengths(cache, igen, initial_state_generator)
             # Write run_lengths to disk.            

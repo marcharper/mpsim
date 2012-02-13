@@ -90,6 +90,8 @@ def fitness_proportionate_selection(csums, r):
 # This function is called by run_simulations
 def simulation(args):
     cache, initial_state, seed, short_report, max_steps, reverse_enumeration = args
+    if not max_steps:
+        max_steps = float("inf")
     # Generate a new random seed and begin history with it.
     srandom = random.Random()
     srandom.seed(seed)
@@ -116,7 +118,7 @@ def simulation(args):
         history = list(map(lambda x: cache.inv_enum[x], history))
     return (seed, iteration, history)
 
-def run_simulations(param_gen, iters_gen, processes=None, call_backs=None, verbose=True, gc_aggressively=False):
+def run_simulations(param_gen, iters_gen, processes=None, call_backs=None, verbose=False, gc_aggressively=False):
     """Runs simulations on multiple processing cores in batch sizes dictated by iters_gen, posting data to callbacks to reduce memory footprint."""
     if not processes:
         processes = multiprocessing.cpu_count()
@@ -127,6 +129,7 @@ def run_simulations(param_gen, iters_gen, processes=None, call_backs=None, verbo
         if verbose:
             print total,
         params = itertools.islice(param_gen, 0, iters)
+        #print list(itertools.islice(params,0,1))
         pool = multiprocessing.Pool(processes=processes)
         results = pool.map(simulation, params)
         pool.close()

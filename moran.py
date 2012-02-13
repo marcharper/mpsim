@@ -22,7 +22,7 @@ def moran_death_2(N):
         return 0.
     return p
 
-def moran_cascade(N)
+def moran_cascade(N):
     def p(pop):
         s = sum(pop)
         return math.pow(2, s-N)
@@ -191,8 +191,10 @@ def moran_simulation_transitions(N, fitness_landscape):
     return edges    
     
 # 2d moran-like process separating birth and death processes
-def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabilities=moran_death()):
+def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabilities=None):
     """Returns a graph of the Markov process corresponding to a generalized Moran process, allowing for uncupled birth and death processes."""
+    if not death_probabilities:
+        death_probabilities = moran_death(N)
     edges = []
     # Possible states are (a, b) with 0 < a + b <= N where a is the number of A individuals and B is the number of B individuals.
     for a in range(1, N + 1):

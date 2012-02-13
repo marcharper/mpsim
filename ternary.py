@@ -84,7 +84,7 @@ def ternary_plot(data, N, directory=None, filename_root=None, cmap_name=None, lo
         for k, v in data.items():
             data[k] = -math.log(v)
     #data = normalize_distribution(data)
-    ternary.heatmap(data, N, cmap_name=cmap_name)
+    heatmap(data, N, cmap_name=cmap_name)
     if directory:
         filename = os.path.join(directory, filename_root + '.png')
         pylab.savefig(filename)    

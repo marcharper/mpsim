@@ -1,5 +1,7 @@
 import math
 
+# Vectors
+
 def multiply_vectors(a, b):
     c = []
     for i in range(len(a)):
