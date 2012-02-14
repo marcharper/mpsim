@@ -14,6 +14,7 @@ import simulation
 import moran
 import ternary
 from math_helpers import normalize, normalize_dictionary
+from helpers import ensure_digits, ensure_directory
 
 ### Cache loaders.
 
@@ -42,16 +43,6 @@ def parse_args(argv):
     except:
         per_run = iterations // 10
     return (N, iterations, per_run)
-
-def ensure_directory(directory):
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
-
-def ensure_digits(num, s):
-    """Prepends a string s with zeros to enforce a set num of digits."""
-    if len(s) < num:
-        return "0"*(num - len(s)) + s
-    return s
 
 def arange(a, b, steps=100):
     """Similar to numpy.arange"""
@@ -168,7 +159,8 @@ def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generato
     counter = callbacks.StateCounter()
     call_backs = [counter.add]   
     # Compile graph
-    edges = moran.multivariate_moran_transitions(N, fitness_landscape)
+    #edges = moran.multivariate_moran_transitions(N, fitness_landscape)
+    edges = moran.moran_simulation_transitions(N, fitness_landscape)
     cache = simulation.compile_edges(edges)
     if verbose:
         markov_process_details(edges)
@@ -178,7 +170,35 @@ def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generato
     
 # formerly "main"
 ## This test produces single images for given matrices for a 3D Moran process.        
-def state_occurances_plot(N, iterations, per_run):
+def three_player_state_occurances_plot(N, iterations, per_run):
+    igen = generators.iterations_generator(iterations, per_run)
+    #initial_state_generator = generators.constant_generator((N//3,N//3,N//3))
+    initial_state_generator = generators.random_state_generator(3, N)
+    # Process data; in this case prep data for a ternary plot.
+    counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
+    ternary_dict = ternary.state_counts_to_ternary(counts, N)
+    ternary.ternary_plot(ternary_dict, N, cmap_name="BrBG")
+    #pylab.savefig(str(i) + ".png")
+        
+def two_player_state_occurances(N=20, fitness_landscape, iterations=1000, per_run=100):
+    igen = generators.iterations_generator(iterations, per_run)
+    #initial_state_generator = generators.constant_generator((N//2,N//2))
+    initial_state_generator = generators.random_state_generator(2, N)
+    # Process data; in this case prep data for a ternary plot.
+    counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
+    pylab.clf()
+    xs = range(1, N)
+    ys = []
+    for i in xs:
+        try:
+            ys.append(1./counts[(i, N-i)])
+        except KeyError:
+            ys.append(0)
+    pylab.plot(xs, ys)
+
+if __name__ == '__main__':
+    # 3 player state occupation plots
+    N, iterations, per_run = parse_args(sys.argv)
     #m = [[0,-2,2],[0,0,1],[0,1,0]]
     #a = 2.8
     #b = 1
@@ -188,22 +208,23 @@ def state_occurances_plot(N, iterations, per_run):
     #m = [[0,0,-1],[0,0,-2],[-1,1,0]]
     #m = [[0,0,-2],[0,0,-1],[-1,1,0]]
     #m = [[0,0,1],[0,0,0],[1,1,0]]
-
     matrices = [[[0,1,-1],[1,0,-3],[-1,3,0]],[[0,1,-1],[1,0,-2],[-1,2,0]],[[0,0,-1],[0,0,-2],[-1,1,0]],[[0,0,-2],[0,0,-1],[-1,1,0]], [[0,0,1],[0,0,0],[1,1,0]]]
     for i, m in enumerate(matrices):
         fitness_landscape = moran.linear_fitness_landscape(m, beta=2.0)
-        igen = generators.iterations_generator(iterations, per_run)
-        #initial_state_generator = generators.constant_generator((N//3,N//3,N//3))
-        initial_state_generator = generators.random_state_generator(3, N)
-        # Process data; in this case prep data for a ternary plot.
-        counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
-        ternary_dict = ternary.state_counts_to_ternary(counts, N)
-        ternary.ternary_plot(ternary_dict, N, cmap_name="BrBG")
-        pylab.savefig(str(i) + ".png")
-        
-if __name__ == '__main__':
-    N, iterations, per_run = parse_args(sys.argv)
-    state_occurances_plot(N, iterations, per_run)
+        three_player_state_occurances_plot(N, iterations, per_run)
+        pylab.show()    
+
+    # 2 player state plots
+    #fitness_landscape = moran.fitness_static(r)
+    m = [[0,1],[0,2]]
+    #m = [[1,2], [2,1]]
+    #m = [[2,1], [1,2]]
+    fitness_landscape = moran.linear_fitness_landscape(m)      
+    two_player_state_occurances(N, iterations, per_run)
+    pylab.show()    
+
+    
+    
     
     #run_lengths()
     #simulation_test(sys.argv[1:])

@@ -5,7 +5,7 @@ import pylab
 import main
 import moran
 import ternary
-from math_helpers import normalize, normalize_distribution, kl_divergence
+from math_helpers import normalize, normalize_dictionary, kl_divergence
 from helpers import ensure_digits
 from graph import Graph
 
@@ -44,18 +44,18 @@ def main(N=27):
     ternary.ternary_plot(e_kl, N)
     pylab.show()
 
-def main_2(N=20, fitness_landscape):
+def main_2(N, fitness_landscape):
     edges = moran.moran_simulation_transitions(N, fitness_landscape)
     graph = Graph()
     graph.add_edges(edges)
     e_kl = dict()
     for source in graph.vertices():
         s = 0.
-        dist = normalize([source, N-source])
+        dist = normalize(list(source))
         #dist = normalize([N//3]*3)
         out_dict = graph.out_dict(source)
         for target, weight in out_dict.items():
-            s += weight * kl_divergence(dist, normalize([target, N-target]))
+            s += weight * kl_divergence(dist, normalize(list(target)))
         #if s > 1e-10:
             #s = math.pow(s, 1./2)
         e_kl[source] = s
@@ -63,7 +63,7 @@ def main_2(N=20, fitness_landscape):
     ys = []
     for k in range(2, N-1):
         xs.append(k)
-        ys.append(e_kl[k])
+        ys.append(e_kl[(k, N-k)])
     pylab.plot(xs, ys)
 
 def kl_movie_2(N=20):
@@ -101,13 +101,13 @@ if __name__ == '__main__':
     #main_2(N)
     #kl_movie(N)
     ## Prisoner's Dilemma
-    #m = [[0,1],[0,2]]
+    m = [[0,1],[0,2]]
     ## Hawk-Dove
     #m = [[1,2],[2,1]]    
     # Coordination
-    m = [[4,1], [1,40]]
-    #fitness_landscape = moran.linear_fitness_landscape(m, fermi=False)
-    fitness_landscape = moran.fitness_static(r)
+    #m = [[2,1], [1,2]]
+    fitness_landscape = moran.linear_fitness_landscape(m, beta=1.)
+    #fitness_landscape = moran.fitness_static(r)
     main_2(N, fitness_landscape)
     pylab.show()
     
