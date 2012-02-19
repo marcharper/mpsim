@@ -55,7 +55,8 @@ def main_2(N, fitness_landscape):
         #dist = normalize([N//3]*3)
         out_dict = graph.out_dict(source)
         for target, weight in out_dict.items():
-            s += weight * kl_divergence(dist, normalize(list(target)))
+            #s += weight * kl_divergence(dist, normalize(list(target)))
+            s += weight * kl_divergence(normalize(list(target)), dist)
         #if s > 1e-10:
             #s = math.pow(s, 1./2)
         e_kl[source] = s
@@ -64,6 +65,7 @@ def main_2(N, fitness_landscape):
     for k in range(2, N-1):
         xs.append(k)
         ys.append(e_kl[(k, N-k)])
+    print ys
     pylab.plot(xs, ys)
 
 def kl_movie_2(N=20):
@@ -93,20 +95,34 @@ def kl_movie_2(N=20):
         ##pylab.ylim(0, 0.0045)
         ##pylab.title("r=%s" % (str(r),))
         ##pylab.savefig('kl_matrix/' + str(ensure_digits(digits, str(i))) + ".png", dpi=160, pad_inches=0.5)
+
+#def expected_gain(N=20., r=2.):
+    #xs = range(1, int(N))
+    #ys = []
+    #for i in xs:
+        #i, N, r = map(float, [i,N,r])
+        #gain = i*(r-1.) * (N - i) / (N * i * (r-1) + N*N)
+        #ys.append(gain)
+        #print i, gain
+    #pylab.plot(xs, ys)
+    #pylab.show()
         
         
 if __name__ == '__main__':
+    #expected_gain(20., 5.)
+    #exit()
+
     N = int(sys.argv[1])
     #main(N)
     #main_2(N)
     #kl_movie(N)
     ## Prisoner's Dilemma
-    m = [[0,1],[0,2]]
+    #m = [[0,1],[0,2]]
     ## Hawk-Dove
-    #m = [[1,2],[2,1]]    
+    #m = [[1,2],[2,1]]
     # Coordination
-    #m = [[2,1], [1,2]]
-    fitness_landscape = moran.linear_fitness_landscape(m, beta=1.)
+    m = [[2,1], [1,2]]
+    fitness_landscape = moran.linear_fitness_landscape(m)
     #fitness_landscape = moran.fitness_static(r)
     main_2(N, fitness_landscape)
     pylab.show()

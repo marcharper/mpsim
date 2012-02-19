@@ -31,6 +31,17 @@ def normalize_dictionary(x):
 def kl_divergence(p, q):
     s = 0.
     for i in range(len(p)):
-        if q[i] > 1e-10:
+        try:
             s += p[i] * math.log(p[i] / q[i])
+        except ValueError:
+            continue
     return s
+
+def shannon_entropy(p):
+    s = 0.
+    for i in range(len(p)):
+        try:
+            s += p[i] * math.log(p[i])
+        except ValueError:
+            continue
+    return -1.*s

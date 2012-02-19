@@ -10,10 +10,11 @@ import pylab
 
 import callbacks
 import generators
+import graph
 import simulation
 import moran
 import ternary
-from math_helpers import normalize, normalize_dictionary
+from math_helpers import normalize, normalize_dictionary, shannon_entropy
 from helpers import ensure_digits, ensure_directory
 
 ### Cache loaders.
@@ -56,8 +57,9 @@ def arange(a, b, steps=100):
 def markov_process_details(edges):
     """Basic details about a set of edges for a Markov process."""
     s = set()
-    for x, _, _ in edges:
+    for x, y, _ in edges:
         s.add(x)
+        s.add(y)
     print "Vertices:", len(s)
     print "Edges:", len(edges)
 
@@ -127,6 +129,16 @@ def two_type_moran_process_simulations(N=40, fitness_landscape=moran.fitness_sta
     runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
     return runs
 
+def generalized_two_type_moran_process_simulations(N=40, fitness_landscape=moran.fitness_static(2.), iterations=10000, per_run=100000, verbose=False, call_backs=None, initial_state_generator=None):
+    if not initial_state_generator:
+        initial_state_generator = generators.random_state_generator(2,N)
+    igen = generators.iterations_generator(iterations, per_run)
+    edges = moran.generalized_moran_simulation_transitions(N, fitness_landscape)
+    cache = simulation.compile_edges(edges, verbose=False)
+    param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=100000)
+    runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
+    return runs    
+    
 def run_lengths(cache, iteration_gen, initial_state_generator, max_steps=1000000):
     rlc = callbacks.RunLengthRecorder()
     call_backs = [rlc.add]
@@ -165,7 +177,7 @@ def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generato
     if verbose:
         markov_process_details(edges)
     # Run Simulations
-    basic_simulation_run(cache, iteration_gen, initial_state_generator, call_backs=call_backs, max_steps=10*N)
+    basic_simulation_run(cache, iteration_gen, initial_state_generator, call_backs=call_backs, max_steps=None)
     return counter.counts
     
 # formerly "main"
@@ -180,10 +192,11 @@ def three_player_state_occurances_plot(N, iterations, per_run):
     ternary.ternary_plot(ternary_dict, N, cmap_name="BrBG")
     #pylab.savefig(str(i) + ".png")
         
-def two_player_state_occurances(N=20, fitness_landscape, iterations=1000, per_run=100):
+def two_player_state_occurances(N, fitness_landscape, iterations=1000, per_run=100):
     igen = generators.iterations_generator(iterations, per_run)
     #initial_state_generator = generators.constant_generator((N//2,N//2))
     initial_state_generator = generators.random_state_generator(2, N)
+    #initial_state_generator = generators.constant_generator((N-4,4))
     # Process data; in this case prep data for a ternary plot.
     counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
     pylab.clf()
@@ -191,36 +204,73 @@ def two_player_state_occurances(N=20, fitness_landscape, iterations=1000, per_ru
     ys = []
     for i in xs:
         try:
-            ys.append(1./counts[(i, N-i)])
+            ys.append(counts[(i, N-i)])
+        except KeyError:
+            ys.append(0)
+    ys = normalize(ys)
+    pylab.plot(xs, ys)
+
+#2d
+def transition_entropy(N, fitness_landscape):
+    edges = moran.moran_simulation_transitions(N, fitness_landscape)
+    g = graph.Graph()
+    g.add_edges(edges)
+    d = dict()
+    for vertex in g.vertices():
+        transitions = g.out_dict(vertex).values()
+        d[vertex] = shannon_entropy(transitions)
+        #try:
+            #p = g.out_dict(vertex)[vertex]
+            #d[vertex] += p * math.log(p)
+        #except KeyError:
+            #continue
+    pylab.clf()
+    xs = range(1, N)
+    ys = []
+    for i in xs:
+        try:
+            ys.append(d[(i, N-i)])
         except KeyError:
             ys.append(0)
     pylab.plot(xs, ys)
-
+    
 if __name__ == '__main__':
-    # 3 player state occupation plots
-    N, iterations, per_run = parse_args(sys.argv)
-    #m = [[0,-2,2],[0,0,1],[0,1,0]]
-    #a = 2.8
-    #b = 1
-    #m = [[0,a,-b],[a,0,-b],[b,b,0]]  
-    #m = [[0,1,-1],[1,0,-3],[-1,3,0]]
-    #m = [[0,1,-1],[1,0,-2],[-1,2,0]]
-    #m = [[0,0,-1],[0,0,-2],[-1,1,0]]
-    #m = [[0,0,-2],[0,0,-1],[-1,1,0]]
-    #m = [[0,0,1],[0,0,0],[1,1,0]]
-    matrices = [[[0,1,-1],[1,0,-3],[-1,3,0]],[[0,1,-1],[1,0,-2],[-1,2,0]],[[0,0,-1],[0,0,-2],[-1,1,0]],[[0,0,-2],[0,0,-1],[-1,1,0]], [[0,0,1],[0,0,0],[1,1,0]]]
-    for i, m in enumerate(matrices):
-        fitness_landscape = moran.linear_fitness_landscape(m, beta=2.0)
-        three_player_state_occurances_plot(N, iterations, per_run)
-        pylab.show()    
+    ### entropy plots
+    #N = 20
+    ##r = 5.
+    ##fitness_landscape = moran.fitness_static(r)
+    #m = [[0.,1.],[0.,2.]]
+    ##m = [[1,2], [2,1]]
+    ##m = [[2,1], [1,2]]
+    #fitness_landscape = moran.linear_fitness_landscape(m)      
+    #transition_entropy(N, fitness_landscape)
+    #pylab.show()
+    #exit()
 
-    # 2 player state plots
+    N, iterations, per_run = parse_args(sys.argv)
+    ### 3 player state occupation plots
+    ##m = [[0,-2,2],[0,0,1],[0,1,0]]
+    ##a = 2.8
+    ##b = 1
+    ##m = [[0,a,-b],[a,0,-b],[b,b,0]]  
+    ##m = [[0,1,-1],[1,0,-3],[-1,3,0]]
+    ##m = [[0,1,-1],[1,0,-2],[-1,2,0]]
+    ##m = [[0,0,-1],[0,0,-2],[-1,1,0]]
+    ##m = [[0,0,-2],[0,0,-1],[-1,1,0]]
+    ##m = [[0,0,1],[0,0,0],[1,1,0]]
+    #matrices = [[[0,1,-1],[1,0,-3],[-1,3,0]],[[0,1,-1],[1,0,-2],[-1,2,0]],[[0,0,-1],[0,0,-2],[-1,1,0]],[[0,0,-2],[0,0,-1],[-1,1,0]], [[0,0,1],[0,0,0],[1,1,0]]]
+    #for i, m in enumerate(matrices):
+        #fitness_landscape = moran.linear_fitness_landscape(m, beta=2.0)
+        #three_player_state_occurances_plot(N, iterations, per_run)
+        #pylab.show()    
+
+    ### 2 player state plots
     #fitness_landscape = moran.fitness_static(r)
-    m = [[0,1],[0,2]]
+    #m = [[0,1],[0,2]]
     #m = [[1,2], [2,1]]
-    #m = [[2,1], [1,2]]
+    m = [[2,1], [1,2]]
     fitness_landscape = moran.linear_fitness_landscape(m)      
-    two_player_state_occurances(N, iterations, per_run)
+    two_player_state_occurances(N, fitness_landscape, iterations, per_run)
     pylab.show()    
 
     

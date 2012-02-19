@@ -7,7 +7,7 @@ from math_helpers import normalize, dot_product, multiply_vectors
 def moran_death(N):
     def p(pop):
         s = sum(pop)
-        if s == N:
+        if s == N + 1:
             return 1
         return 0
     return p
@@ -197,14 +197,14 @@ def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabi
         death_probabilities = moran_death(N)
     edges = []
     # Possible states are (a, b) with 0 < a + b <= N where a is the number of A individuals and B is the number of B individuals.
-    for a in range(1, N + 1):
-        for b in range(1, N + 1 - a):
+    for a in range(1, N + 2):
+        for b in range(1, N + 2 - a):
             # Death probabilities.
             if a + b == 0:
                 continue
-            if a + b < N - 1:
+            if a + b < N:
                 continue
-            p = death_probabilities((a, b), a+b, N)
+            p = death_probabilities((a, b))
             if a > 0:
                 q = p * float(a) / (a + b)
                 if q > 0:
@@ -214,7 +214,7 @@ def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabi
                 if q > 0:
                     edges.append(((a, b), (a, b - 1), q))
             # Birth Probabilities
-            if a + b >= N:
+            if a + b >= N + 1:
                 continue
             birth_q = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
             if a <= N:
