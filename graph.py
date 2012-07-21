@@ -1,3 +1,5 @@
+import random
+
 """Labeled and weighted graph class for Markov simulations. Minimal for needs of mpsim."""
 
 # Vertices are labeled with hashable objects. Edges are tuples (vertex_label_source, vertex_label_target) (which are hashable)
@@ -17,15 +19,22 @@ class Graph(object):
         self._edges.append((source, target, weight))
 
     def add_edges(self, edges):
-        for source, target, weight in edges:
-            self.add_edge(source, target, weight)
-
+        try:
+            for source, target, weight in edges:
+                self.add_edge(source, target, weight)
+        except ValueError:
+            for source, target in edges:
+                self.add_edge(source, target, 1.0)
+        
     def vertices(self):
         return self._vertices
 
     def out_dict(self, source):
         return dict([(t, v) for s, t, v in self._edges if s == source])
 
+    def out_vertices(self, source):
+        return [t for s, t, v in self._edges if s == source]
+        
     def in_dict(self, target):
         return dict([(s, v) for s, t, v in self._edges if t == target])
     
@@ -37,3 +46,19 @@ class Graph(object):
             for s, t, v in out_edges:
                 new_edges.append((s,t,v/total))
         self._edges = new_edges
+
+class RandomGraph(object):
+    def __init__(self, num_vertices, p):
+        self._vertices = set(range(num_vertices))
+        self.p = p
+        
+    def vertices(self):
+        return self._vertices
+
+    def out_vertices(self, source):
+        outs = []
+        for v in self._vertices:
+            q = random.random()
+            if q <= self.p:
+                outs.append(v)
+        return outs

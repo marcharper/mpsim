@@ -46,3 +46,8 @@ def random_state_generator(n,N):
     """Random state generator for use as an initial_state_generator."""
     while True:
         yield random_vector(n, N)
+
+def systematic_state_generator(N, each=1000):
+    for i in range(1, N):
+        for _ in range(each):
+            yield (i, N-i)

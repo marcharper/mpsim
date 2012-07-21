@@ -119,25 +119,20 @@ def basic_simulation_run(cache, iteration_gen, initial_state_generator, call_bac
     all_results = simulation.run_simulations(param_gen, iteration_gen, call_backs=call_backs)
     return all_results
 
-def two_type_moran_process_simulations(N=40, fitness_landscape=moran.fitness_static(2.), iterations=10000, per_run=100000, verbose=False, call_backs=None, initial_state_generator=None):
+#edge_function = generalized_moran_simulation_transitions
+def two_type_moran_process_simulations(N=40, fitness_landscape=None, initial_state_generator=None, edge_function=None, iterations=10000, per_run=100000, verbose=False, call_backs=None):
+    if not fitness_landscape:
+        fitness_landscape = moran.fitness_static(2.)
+    if not edge_function:
+        edge_function = moran.moran_simulation_transition
     if not initial_state_generator:
         initial_state_generator = generators.random_state_generator(2,N)
-    igen = generators.iterations_generator(iterations, per_run)
-    edges = moran.moran_simulation_transitions(N, fitness_landscape)
+    edges = edge_function(N, fitness_landscape)
     cache = simulation.compile_edges(edges, verbose=False)
+    igen = generators.iterations_generator(iterations, per_run)
     param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=100000)
     runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
-    return runs
-
-def generalized_two_type_moran_process_simulations(N=40, fitness_landscape=moran.fitness_static(2.), iterations=10000, per_run=100000, verbose=False, call_backs=None, initial_state_generator=None):
-    if not initial_state_generator:
-        initial_state_generator = generators.random_state_generator(2,N)
-    igen = generators.iterations_generator(iterations, per_run)
-    edges = moran.generalized_moran_simulation_transitions(N, fitness_landscape)
-    cache = simulation.compile_edges(edges, verbose=False)
-    param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=100000)
-    runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
-    return runs    
+    return runs 
     
 def run_lengths(cache, iteration_gen, initial_state_generator, max_steps=1000000):
     rlc = callbacks.RunLengthRecorder()
