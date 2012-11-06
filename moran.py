@@ -87,23 +87,16 @@ def linear_fitness_landscape(m, beta=None):
     # m = array of rows
     def f(pop):
         fitness = []
+        #if escort:
+            #pop = list(map(escort,pop))
         for i in range(len(pop)):
             # - m[i][i] because we assume that individuals do not interact with themselves.
             f = dot_product(m[i], pop) - m[i][i] 
             fitness.append(f)
         return fitness
     if beta:
-        f = fermi_transform(f)
+        f = fermi_transform(f, beta)
     return f
-
-#The preceeding function replaced these?
-#def fitness_game_matrix(game_matrix):
-    #(a,b,c,d) = game_matrix
-    #def fitness(i, N):
-        #f_a = ( a*(i - 1.) + b*(N - i) ) / (N - 1.)
-        #f_b = ( c*i + d*(N - i - 1.) ) / (N - 1.)
-        #return [f_a, f_b]
-    #return fitness
 
 #E.g in two-player games, this is equivalent to
 #m = [[a,b],[c,d]]
@@ -113,27 +106,12 @@ def linear_fitness_landscape(m, beta=None):
     #f_b = ( c*i + d*(N - i - 1.) ) / (N - 1.)
     #return [f_a, f_b]
     
-#def linear_fitness_landscape(m, fermi=True, beta=1, escort=None):
-    #"""Computes a fitness landscape for a three player game from a matrix given by m and a population vector (i,j,...,k) summing to N. If fermi is True, fitness values are exponentiated which is useful to prevent division by mean-fitnesses of zero."""
-    ## m = array of rows
-    #def f(pop):
-        #fitness = []
-        #if escort:
-            #pop = list(map(escort,pop))
-        #for i in range(len(pop)):
-            #f = dot_product(m[i], pop) - m[i][i] 
-            #fitness.append(f)
-        #if fermi:
-            #fitness = list(map(lambda x: math.exp(beta*x), fitness))
-        #return fitness
-    #return f
-    
 ### Transition Probability Computers    
     
 #def three_player_variable_population(N, fitness_landscape, death_probabilities=moran_death()):
     #pass
     
-# 3d actual moran process    
+# 3d Moran process    
 def multivariate_moran_transitions(N, fitness_landscape):
     """Computes transitions for dimension n=3 moran process given a game matrix."""
     edges = []
@@ -192,14 +170,14 @@ def moran_simulation_transitions(N, fitness_landscape):
     
 # 2d moran-like process separating birth and death processes
 def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabilities=None):
-    """Returns a graph of the Markov process corresponding to a generalized Moran process, allowing for uncupled birth and death processes."""
+    """Returns a graph of the Markov process corresponding to a generalized Moran process, allowing for uncoupled birth and death processes."""
     if not death_probabilities:
         death_probabilities = moran_death(N)
     edges = []
     # Possible states are (a, b) with 0 < a + b <= N where a is the number of A individuals and B is the number of B individuals.
     for a in range(1, N + 2):
         for b in range(1, N + 2 - a):
-            # Death probabilities.
+            # Death events.
             if a + b == 0:
                 continue
             if a + b < N:
@@ -213,7 +191,7 @@ def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabi
                 q = p * float(b) / (a + b)
                 if q > 0:
                     edges.append(((a, b), (a, b - 1), q))
-            # Birth Probabilities
+            # Birth events.
             if a + b >= N + 1:
                 continue
             birth_q = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
@@ -226,3 +204,39 @@ def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabi
                 if q > 0:
                     edges.append(((a, b), (a, b + 1), q))
     return edges
+
+# 2d moran-like process separating birth and death processes; same as fixed size other than a + b < N conditional.
+def generalized_moran_simulation_transitions_variable_size(N, fitness_landscape, death_probabilities=None):
+    """Returns a graph of the Markov process corresponding to a generalized Moran process, allowing for uncoupled birth and death processes."""
+    if not death_probabilities:
+        death_probabilities = moran_death(N)
+    edges = []
+    # Possible states are (a, b) with 0 < a + b <= N where a is the number of A individuals and B is the number of B individuals.
+    for a in range(1, N + 2):
+        for b in range(1, N + 2 - a):
+            # Death events.
+            if a + b == 0:
+                continue
+            p = death_probabilities((a, b))
+            if a > 0:
+                q = p * float(a) / (a + b)
+                if q > 0:
+                    edges.append(((a, b), (a - 1, b), q))
+            if b > 0:
+                q = p * float(b) / (a + b)
+                if q > 0:
+                    edges.append(((a, b), (a, b - 1), q))
+            # Birth events.
+            if a + b >= N + 1:
+                continue
+            birth_q = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
+            if a <= N:
+                q = (1. - p) * birth_q[0]
+                if q > 0:
+                    edges.append(((a, b), (a + 1, b), q))
+            if b <= N:
+                q = (1. - p) * birth_q[1]
+                if q > 0:
+                    edges.append(((a, b), (a, b + 1), q))
+    return edges    
+    

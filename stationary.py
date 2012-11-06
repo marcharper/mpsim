@@ -1,9 +1,14 @@
 import moran
 import main
+import os
 import sys
 import pylab
 from helpers import ensure_digits
 from graph import Graph
+
+from matplotlib import pyplot
+
+import ternary
 
 """Compute stationary distributions for Markov processes."""
 
@@ -45,23 +50,16 @@ def stationary_distribution_generator(cache, initial_state=None):
         yield new_ranks
         ranks = new_ranks
 
-def three_dim():    
-    N = int(sys.argv[1])
-    iterations = int(sys.argv[2])
-
+def three_dim(N, iterations, m):    
     print "preparing computations"
-    m = moran.rock_scissors_paper(a=1, b=3)
-    #a = 2.8
-    #b = 1
-    #m = [[0,a,-b],[a,0,-b],[b,b,0]]  
-    #m = [[0,0,1],[0,0,0],[1,1,0]]
-    edges = moran.multivariate_moran_transitions(m=m, N=N)
+    landscape = moran.linear_fitness_landscape(m)
+    edges = moran.multivariate_moran_transitions(N, landscape)
     g = Graph()
     g.add_edges(edges)
     g.normalize_weights()
     cache = Cache(g)
     initial_state = [0]*(len(edges))
-    initial_state[cache.enum[(N//3, N//3, N//3)]] = 1
+    initial_state[cache.enum[(N//3, N//3, N - 2*(N//3))]] = 1
     #initial_state = [1]*(len(edges))
     print "calculating convergents and saving images"
     gen = stationary_distribution_generator(cache, initial_state=initial_state)
@@ -72,13 +70,13 @@ def three_dim():
         for j, r in enumerate(ranks):
             state = cache.inv_enum[j]
             d[(state[0], state[1])] = r
-        main.ternary_plot(d, N, 'stat', ensure_digits(len(str(iterations)), str(i)), log=True)
-        #print i, 
+        ternary.heatmap(d, N)
+        pyplot.savefig(os.path.join('stat', ensure_digits(len(str(iterations)), str(i))))
 
 def two_dim(N=20, r=0, iterations=200):
     #fitness_landscape = moran.fitness_static(r)
     m = [[1,2], [2,1]]
-    fitness_landscape = moran.linear_fitness_landscape(m, fermi=False)
+    fitness_landscape = moran.linear_fitness_landscape(m)
     edges = moran.moran_simulation_transitions(N, fitness_landscape)
     g = Graph()
     g.add_edges(edges)
@@ -86,7 +84,7 @@ def two_dim(N=20, r=0, iterations=200):
     cache = Cache(g)
     initial_state = [0]*(len(edges))
     #initial_state[cache.enum[N//2]] = 1
-    initial_state[cache.enum[1]] = 1
+    initial_state[cache.enum[(1, N-1)]] = 1
     #initial_state = [1]*(len(edges))
     #print "calculating convergents and saving images"
     gen = stationary_distribution_generator(cache, initial_state=initial_state)
@@ -108,7 +106,17 @@ def two_dim(N=20, r=0, iterations=200):
         pylab.clf()
         pylab.plot(xs, ys)
         #pylab.show()
-        pylab.savefig('static_2/' + ensure_digits(len(str(iterations)), str(i)) + ".png", dpi=160)
+        #pylab.savefig('static_2/' + ensure_digits(len(str(iterations)), str(i)) + ".png", dpi=160)
 
 if __name__ == '__main__':
-    two_dim()
+    N = int(sys.argv[1])
+    iterations = int(sys.argv[2])
+    
+    m = moran.rock_scissors_paper(a=1, b=3)
+    #a = 2.8
+    #b = 1
+    #m = [[0,a,-b],[a,0,-b],[b,b,0]]  
+    #m = [[0,0,1],[0,0,0],[1,1,0]]
+    
+    three_dim(N, iterations, m)
+    #two_dim(N=N, iterations=iterations)

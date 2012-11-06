@@ -73,7 +73,7 @@ def write_ternary_data(data, directory, filename_root):
     for k, v in data.items():
         writer.writerow([k[0], k[1], v])
 
-def ternary_plot(data, N, directory=None, filename_root=None, cmap_name=None, log=True, ):
+def ternary_plot(data, N, directory=None, filename_root=None, cmap_name=None, log=True):
     """Generates a ternary plot using functions from the ternary module."""
     pylab.clf()
     if log:
@@ -120,19 +120,25 @@ def basic_simulation_run(cache, iteration_gen, initial_state_generator, call_bac
     return all_results
 
 #edge_function = generalized_moran_simulation_transitions
-def two_type_moran_process_simulations(N=40, fitness_landscape=None, initial_state_generator=None, edge_function=None, iterations=10000, per_run=100000, verbose=False, call_backs=None):
+def two_type_moran_process_simulations(N=40, fitness_landscape=None, initial_state_generator=None, edge_function=None, iterations=10000, per_run=100000, verbose=False, call_backs=None, death_probabilities=None):
     if not fitness_landscape:
         fitness_landscape = moran.fitness_static(2.)
     if not edge_function:
         edge_function = moran.moran_simulation_transition
     if not initial_state_generator:
         initial_state_generator = generators.random_state_generator(2,N)
-    edges = edge_function(N, fitness_landscape)
+    # Not all edge functions accept death probabilities (in particular, pure moran doesn't).
+    if death_probabilities:
+        edges = edge_function(N, fitness_landscape, death_probabilities=death_probabilities)
+    else:
+        edges = edge_function(N, fitness_landscape)
     cache = simulation.compile_edges(edges, verbose=False)
     igen = generators.iterations_generator(iterations, per_run)
     param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=100000)
     runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
     return runs 
+
+## Run length estimators ##  
     
 def run_lengths(cache, iteration_gen, initial_state_generator, max_steps=1000000):
     rlc = callbacks.RunLengthRecorder()
@@ -161,6 +167,8 @@ def run_length_batches(Ns=range(6, 60, 3), brange=numpy.arange(0,5.01, 0.1), a=1
             for l in lengths:
                 print >> handle, l
 
+## Relative state occupancies ##                
+
 def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generator, verbose=True):
     # Callbacks
     counter = callbacks.StateCounter()
@@ -175,7 +183,6 @@ def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generato
     basic_simulation_run(cache, iteration_gen, initial_state_generator, call_backs=call_backs, max_steps=None)
     return counter.counts
     
-# formerly "main"
 ## This test produces single images for given matrices for a 3D Moran process.        
 def three_player_state_occurances_plot(N, iterations, per_run):
     igen = generators.iterations_generator(iterations, per_run)
@@ -184,7 +191,7 @@ def three_player_state_occurances_plot(N, iterations, per_run):
     # Process data; in this case prep data for a ternary plot.
     counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
     ternary_dict = ternary.state_counts_to_ternary(counts, N)
-    ternary.ternary_plot(ternary_dict, N, cmap_name="BrBG")
+    ternary.heatmap(ternary_dict, N, cmap_name="BrBG")
     #pylab.savefig(str(i) + ".png")
         
 def two_player_state_occurances(N, fitness_landscape, iterations=1000, per_run=100):

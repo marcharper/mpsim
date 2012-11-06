@@ -12,11 +12,12 @@ from math_helpers import normalize
 from graph import Graph
 
 def cumsum(l):
+    "Cumulative summation."""
     a = numpy.array(l)
     return a.cumsum()
 
-# Unpickle a precompiled cache.
 def load_cache(filename):
+    """Unpickle a precompiled cache."""
     f = open(filename)
     cache = pickle.load(f)
     return cache
@@ -25,6 +26,7 @@ def load_cache(filename):
 
 # Each simulation requires a tuple of arguments for multiprocessing.        
 def parameter_generator(cache, initial_state_gen, seed_gen=None, short_report=False, max_steps=10000, reverse_enumeration=True):
+    """Yields parameters for simulations as needed for multiprocessing."""
     cache_gen = generators.constant_generator(cache)
     report_gen = generators.constant_generator(short_report)
     max_steps_gen = generators.constant_generator(max_steps)
@@ -78,8 +80,6 @@ class SimulationCache(object):
             self.out_neighbors.append([self.enum[k] for k,v in items])
             self.absorbing.append(not out_dict)
 
-### This functional version is intended for usage with multiprocessing.
-
 # This function is used to select a neighboring state.
 def fitness_proportionate_selection(csums, r):
     """Selects next transition from an array of cumulatively summed values and a random value r in [0,1)"""
@@ -87,7 +87,7 @@ def fitness_proportionate_selection(csums, r):
         if x >= r:
             return j
 
-# This function is called by run_simulations
+# This function is called by run_simulations and actually carries out the simulation.
 def simulation(args):
     cache, initial_state, seed, short_report, max_steps, reverse_enumeration = args
     if not max_steps:
