@@ -1,14 +1,14 @@
-import moran
-import main
 import os
 import sys
-import pylab
-from helpers import ensure_digits
-from graph import Graph
-
 from matplotlib import pyplot
 
 import ternary
+
+import moran
+import main
+from helpers import ensure_digits
+from graph import Graph
+from incentives import *
 
 """Compute stationary distributions for Markov processes."""
 
@@ -73,11 +73,8 @@ def three_dim(N, iterations, m):
         ternary.heatmap(d, N)
         pyplot.savefig(os.path.join('stat', ensure_digits(len(str(iterations)), str(i))))
 
-def two_dim(N=20, r=0, iterations=200):
-    #fitness_landscape = moran.fitness_static(r)
-    m = [[1,2], [2,1]]
-    fitness_landscape = moran.linear_fitness_landscape(m)
-    edges = moran.moran_simulation_transitions(N, fitness_landscape)
+def two_dim(incentive, N=20, iterations=200, directory="static_2"):
+    edges = moran.moran_simulation_transitions(N, incentive=incentive)
     g = Graph()
     g.add_edges(edges)
     g.normalize_weights()
@@ -103,20 +100,30 @@ def two_dim(N=20, r=0, iterations=200):
         ys = []
         for k in xs:
             ys.append(d[(k, N-k)])
-        pylab.clf()
-        pylab.plot(xs, ys)
-        #pylab.show()
-        #pylab.savefig('static_2/' + ensure_digits(len(str(iterations)), str(i)) + ".png", dpi=160)
+        if i % 100 != 0:
+            continue
+        pyplot.clf()
+        pyplot.plot(xs, ys)
+        pyplot.savefig(directory + '/' + ensure_digits(len(str(iterations)), str(i)) + ".png", dpi=160)
 
 if __name__ == '__main__':
     N = int(sys.argv[1])
     iterations = int(sys.argv[2])
     
-    m = moran.rock_scissors_paper(a=1, b=3)
+    #m = moran.rock_scissors_paper(a=1, b=3)
     #a = 2.8
     #b = 1
     #m = [[0,a,-b],[a,0,-b],[b,b,0]]  
     #m = [[0,0,1],[0,0,0],[1,1,0]]
     
-    three_dim(N, iterations, m)
-    #two_dim(N=N, iterations=iterations)
+    #three_dim(N, iterations, m)
+    
+    r = 1.1
+    #fitness_landscape = moran.fitness_static(r)
+    m = [[1,2], [2,1]]
+    fitness_landscape = moran.linear_fitness_landscape(m)  
+    #incentive=replicator_incentive_power(fitness_landscape, 0.)
+    #two_dim(incentive, N=N, iterations=iterations)
+    incentive=replicator_incentive_power(fitness_landscape, 1.)
+    two_dim(incentive, N=N, iterations=iterations, directory="static_3")
+    #pyplot.show()

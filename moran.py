@@ -55,10 +55,11 @@ def linear_death(N):
 ### Landscape Transforms
 
 def fermi_transform(landscape, beta=1.0):
+    """Exponentiates landscapes, useful if total fitness is zero to prevent divide by zero errors."""
     def f(x):
         fitness = list(map(lambda z: math.exp(beta*z), landscape(x)))
         return fitness
-    return f
+    return f  
 
 def escort_transform(landscape, escort):
     def f(pop):
@@ -82,21 +83,43 @@ def rock_scissors_paper(a=1, b=1):
     """Good and Bad RSP matrix."""
     return [[0,-b,a], [a, 0, -b], [-b, a, 0]]        
     
-def linear_fitness_landscape(m, beta=None):
-    """Computes a fitness landscape for a three player game from a matrix given by m and a population vector (i,j,...,k) summing to N."""
+#def linear_fitness_landscape(m, beta=None):
+    #"""Computes a fitness landscape for a three player game from a matrix given by m and a population vector (i,j,...,k) summing to N."""
+    ## m = array of rows
+    #def f(pop):
+        #fitness = []
+        ##if escort:
+            ##pop = list(map(escort,pop))
+        #for i in range(len(pop)):
+            ## - m[i][i] because we assume that individuals do not interact with themselves.
+            #f = dot_product(m[i], pop) - m[i][i] 
+            #fitness.append(f)
+        #return fitness
+    #if beta:
+        #f = fermi_transform(f, beta)
+    #return f
+
+def linear_fitness_landscape(m, beta=None, self_interaction=False):
+    """Computes a fitness landscape from a game matrix given by m and a population vector (i,j) summing to N."""
     # m = array of rows
     def f(pop):
+        N = sum(pop)
+        if self_interaction:
+            div = N
+        else:
+            div = N-1
+        #pop = [x / float(div) for x in pop]
         fitness = []
-        #if escort:
-            #pop = list(map(escort,pop))
         for i in range(len(pop)):
-            # - m[i][i] because we assume that individuals do not interact with themselves.
-            f = dot_product(m[i], pop) - m[i][i] 
-            fitness.append(f)
+            # - m[i][i] if individuals do not interact with themselves.
+            f = dot_product(m[i], pop)
+            if not self_interaction:
+                f -= m[i][i]
+            fitness.append(f / float(div))
         return fitness
     if beta:
         f = fermi_transform(f, beta)
-    return f
+    return f  
 
 #E.g in two-player games, this is equivalent to
 #m = [[a,b],[c,d]]
@@ -153,13 +176,16 @@ def multivariate_moran_transitions(N, fitness_landscape):
             edges.extend(temp_edges)
     return edges
 
-def moran_simulation_transitions(N, fitness_landscape):
+def moran_simulation_transitions(N, fitness_landscape=None, incentive=None):
     """Returns a graph of the Markov process corresponding to a generalized Moran process on the given fitness landscape."""
     edges = []
     # Possible states are (a, b) with 0 < a + b <= N where a is the number of A individuals and B is the number of B individuals.
     for a in range(1, N):
         b = float(N - a)
-        birth = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
+        if incentive:
+            birth = normalize(incentive(normalize([a,b])))
+        else:
+            birth = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
         up = birth[0] * b / (a + b)
         down = birth[1] * a / (a + b)
         even = 1 - up - down
@@ -169,7 +195,7 @@ def moran_simulation_transitions(N, fitness_landscape):
     return edges    
     
 # 2d moran-like process separating birth and death processes
-def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabilities=None):
+def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabilities=None, incentive=None):
     """Returns a graph of the Markov process corresponding to a generalized Moran process, allowing for uncoupled birth and death processes."""
     if not death_probabilities:
         death_probabilities = moran_death(N)
@@ -194,7 +220,10 @@ def generalized_moran_simulation_transitions(N, fitness_landscape, death_probabi
             # Birth events.
             if a + b >= N + 1:
                 continue
-            birth_q = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
+            if incentive:
+                birth_q = normalize(incentive([a,b]))
+            else:
+                birth_q = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
             if a <= N:
                 q = (1. - p) * birth_q[0]
                 if q > 0:

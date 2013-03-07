@@ -1,6 +1,15 @@
-import math
+from math import log
 
-# Vectors
+def arange(a, b, steps=100):
+    """Similar to numpy.arange"""
+    delta = (b - a) / float(steps)
+    xs = []
+    for i in range(steps):
+        x = a + delta * i
+        xs.append(x)
+    return xs
+
+## Vectors
 
 def multiply_vectors(a, b):
     c = []
@@ -28,11 +37,15 @@ def normalize_dictionary(x):
         x[k] /= s
     return x
 
+## Information Theoretic Functions    
+    
 def kl_divergence(p, q):
     s = 0.
     for i in range(len(p)):
+        #if q[i] == 0:
+            #continue
         try:
-            s += p[i] * math.log(p[i] / q[i])
+            s += p[i] * log(p[i] / q[i])
         except ValueError:
             continue
     return s
@@ -41,7 +54,20 @@ def shannon_entropy(p):
     s = 0.
     for i in range(len(p)):
         try:
-            s += p[i] * math.log(p[i])
+            s += p[i] * log(p[i])
         except ValueError:
             continue
     return -1.*s
+
+def shannon_entropy(p):
+    s = 0.
+    for i in range(len(p)):
+        try:
+            s += p[i] * log(p[i])
+        except ValueError:
+            continue
+    return -1.*s    
+
+def binary_entropy(p):
+    return -p*log(p) - (1-p) * log(1-p)
+    

@@ -273,10 +273,7 @@ if __name__ == '__main__':
     m = [[2,1], [1,2]]
     fitness_landscape = moran.linear_fitness_landscape(m)      
     two_player_state_occurances(N, fitness_landscape, iterations, per_run)
-    pylab.show()    
-
-    
-    
+    pylab.show()
     
     #run_lengths()
     #simulation_test(sys.argv[1:])
