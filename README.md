@@ -109,7 +109,7 @@ Then you would pass the `add` method of an instance as the callback, like so:
 
 ```
     callback_obj = mpsim.callbacks.RunLengthRecorder()
-    callback = callback.add
+    callback = callback_obj.add
 ```
 
 `mpsim` will then pass the trajectories to the add function as each batch is
