@@ -17,86 +17,6 @@ import ternary
 from math_helpers import normalize, normalize_dictionary, shannon_entropy
 from helpers import ensure_digits, ensure_directory
 
-### Helpers and plotters
-
-def parse_args(argv):
-    N = int(argv[1])
-    iterations = int(argv[2])
-    try:
-        per_run = int(argv[3])
-    except:
-        per_run = iterations // 10
-    return (N, iterations, per_run)
-
-def arange(a, b, steps=100):
-    """Similar to numpy.arange"""
-    delta = (b - a) / float(steps)
-    xs = []
-    for i in range(steps):
-        x = a + delta * i
-        xs.append(x)
-    return xs
-
-def markov_process_details(edges):
-    """Basic details about a set of edges for a Markov process."""
-    s = set()
-    for x, y, _ in edges:
-        s.add(x)
-        s.add(y)
-    print "Vertices:", len(s)
-    print "Edges:", len(edges)
-
-### Convenience functions for ternary plot generation.    
-    
-def write_ternary_data(data, directory, filename_root):
-    """ Writes weighted ternary data to disk."""
-    filename = os.path.join(directory, filename_root +'.csv')
-    handle = open(filename, 'w')
-    writer = csv.writer(handle)
-    for k, v in data.items():
-        writer.writerow([k[0], k[1], v])
-
-def ternary_plot(data, N, directory=None, filename_root=None, cmap_name=None, log=True):
-    """Generates a ternary plot using functions from the ternary module."""
-    pylab.clf()
-    if log:
-        for k, v in data.items():
-            data[k] = (math.log(1 + v))
-    data = normalize_dictionary(data)
-    ternary.heatmap(data, N, cmap_name=cmap_name)
-    if directory:
-        filename = os.path.join(directory, filename_root + '.png')
-        pylab.savefig(filename)
-        
-### Movie creation.
-def make_movie_images(N, iterations, data_directory="movies/"):
-    """Generates images for stitching into a video."""
-    a = 1.   
-    run_params = []
-    run_params.append((40000, 20000, arange(-2, 2, 100)))
-    run_params.append((80000, 20000, arange(2, 4, 50)))
-    run_params.append((120000, 40000, arange(4, 34, 300)))
-    total = sum(len(l) for i, p, l in run_params)
-    digits = len(str(total))
-    pre = 0
-    for iterations, per_run, l in run_params:
-        for i in range(len(l)):
-            b = l[i]
-            print i, ensure_digits(digits, str(pre + i)), b, iterations, per_run
-            m = moran.rock_scissors_paper(a=a, b=b)    
-            fitness_landscape = moran.linear_fitness_landscape(m, beta=2.0)
-            igen = generators.iterations_generator(iterations, per_run)
-            #initial_state_generator = generators.constant_generator((N//3,N//3,N//3))
-            initial_state_generator = generators.random_state_generator(3, N)
-            # Process data; in this case prep data for a ternary plot.
-            counts = state_occurances(N, fitness_landscape, igen, initial_state_generator)
-            d = state_counts_to_ternary(counts, N)
-            #write_ternary_data(d, "movies", ensure_digits(digits, str(pre + i)))
-            ternary.ternary_plot(d, N, "movies", ensure_digits(digits, str(pre + i)))
-        pre += len(l)
-
-### Examples and Tests    
-
 def basic_simulation_run(cache, iteration_gen, initial_state_generator, call_backs=None, max_steps=None, short_report=False):
     param_gen = simulation.parameter_generator(cache, initial_state_generator, max_steps=max_steps, short_report=short_report)
     all_results = simulation.run_simulations(param_gen, iteration_gen, call_backs=call_backs)
@@ -219,12 +139,19 @@ def transition_entropy(N, fitness_landscape):
             ys.append(0)
     pylab.plot(xs, ys)
     
+
+def example_1():
+    """
+    Runs a basic simulation.
+    """
+    
+    edges = [('a', 'b', 0.5), ('a', 'a', 0.5), ('b', 'a', 0.8),
+             ('b', 'b', 0.1), ('b', 'c', 0.1)]
+    cache = mpsim.compile_edges(edges)
+    trajectory = mpsim.simulation(cache, initial_state='a')
+    print trajectory
+
+    
+    
 if __name__ == '__main__':
-    N, iterations, per_run = parse_args(sys.argv)
-
-    m = [[2,1], [1,2]]
-    fitness_landscape = moran.linear_fitness_landscape(m)      
-    two_player_state_occurances(N, fitness_landscape, iterations, per_run)
-    pylab.show()
-
-        
+    example_1()
