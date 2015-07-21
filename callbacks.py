@@ -66,7 +66,4 @@ class ResultsWriter(object):
             row.extend(history)
             self.writer.write(row)
 
-## Callbacks to cache to disk
-#writer = ResultsWriter(filename="results.csv")
-#call_backs = [writer.write]
             

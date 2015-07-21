@@ -133,15 +133,7 @@ if __name__ == '__main__':
     N = int(sys.argv[1])
     iterations = int(sys.argv[2])
     
-    #m = moran.rock_scissors_paper(a=1, b=3)
-    #a = 2.8
-    #b = 1
-    #m = [[0,a,-b],[a,0,-b],[b,b,0]]  
-    #m = [[0,0,1],[0,0,0],[1,1,0]]
-    
-    #three_dim(N, iterations, m)
-    
-    r = 1.1
+    #r = 1.1
     #fitness_landscape = moran.fitness_static(r)
     m = [[1,2], [2,1]]
     fitness_landscape = moran.linear_fitness_landscape(m)  

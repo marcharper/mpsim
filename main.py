@@ -17,23 +17,6 @@ import ternary
 from math_helpers import normalize, normalize_dictionary, shannon_entropy
 from helpers import ensure_digits, ensure_directory
 
-### Cache loaders.
-
-#def edges_to_csv(edges, filename):
-    #handle = open(filename, 'w')
-    #writer = csv.writer(handle)
-    #for x, y, z in edges:
-        #row = [x, y, z]
-        #writer.writerow(row)
-
-#def csv_to_edges(filename):
-    #handle = open(filename)
-    #reader = csv.reader(handle)
-    #edges = []
-    #for row in reader:
-        #edges.append(tuple(map(eval, row)))
-    #return edges
-
 ### Helpers and plotters
 
 def parse_args(argv):
@@ -237,49 +220,11 @@ def transition_entropy(N, fitness_landscape):
     pylab.plot(xs, ys)
     
 if __name__ == '__main__':
-    ### entropy plots
-    #N = 20
-    ##r = 5.
-    ##fitness_landscape = moran.fitness_static(r)
-    #m = [[0.,1.],[0.,2.]]
-    ##m = [[1,2], [2,1]]
-    ##m = [[2,1], [1,2]]
-    #fitness_landscape = moran.linear_fitness_landscape(m)      
-    #transition_entropy(N, fitness_landscape)
-    #pylab.show()
-    #exit()
-
     N, iterations, per_run = parse_args(sys.argv)
-    ### 3 player state occupation plots
-    ##m = [[0,-2,2],[0,0,1],[0,1,0]]
-    ##a = 2.8
-    ##b = 1
-    ##m = [[0,a,-b],[a,0,-b],[b,b,0]]  
-    ##m = [[0,1,-1],[1,0,-3],[-1,3,0]]
-    ##m = [[0,1,-1],[1,0,-2],[-1,2,0]]
-    ##m = [[0,0,-1],[0,0,-2],[-1,1,0]]
-    ##m = [[0,0,-2],[0,0,-1],[-1,1,0]]
-    ##m = [[0,0,1],[0,0,0],[1,1,0]]
-    #matrices = [[[0,1,-1],[1,0,-3],[-1,3,0]],[[0,1,-1],[1,0,-2],[-1,2,0]],[[0,0,-1],[0,0,-2],[-1,1,0]],[[0,0,-2],[0,0,-1],[-1,1,0]], [[0,0,1],[0,0,0],[1,1,0]]]
-    #for i, m in enumerate(matrices):
-        #fitness_landscape = moran.linear_fitness_landscape(m, beta=2.0)
-        #three_player_state_occurances_plot(N, iterations, per_run)
-        #pylab.show()    
 
-    ### 2 player state plots
-    #fitness_landscape = moran.fitness_static(r)
-    #m = [[0,1],[0,2]]
-    #m = [[1,2], [2,1]]
     m = [[2,1], [1,2]]
     fitness_landscape = moran.linear_fitness_landscape(m)      
     two_player_state_occurances(N, fitness_landscape, iterations, per_run)
     pylab.show()
-    
-    #run_lengths()
-    #simulation_test(sys.argv[1:])
-    #for b in range(0, 400, 4):
-        #multivariate_test(sys.argv, a=1, b=1+b/100.)
-    #multivariate_test(sys.argv, a=1, b=8)
-    #make_movie_images(sys.argv)
-    # ffmpeg -qscale 2 -r 15 -b 9600 -i %03d.png movie.mp4
+
         

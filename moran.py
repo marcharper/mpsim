@@ -129,10 +129,7 @@ def linear_fitness_landscape(m, beta=None, self_interaction=False):
     #f_b = ( c*i + d*(N - i - 1.) ) / (N - 1.)
     #return [f_a, f_b]
     
-### Transition Probability Computers    
-    
-#def three_player_variable_population(N, fitness_landscape, death_probabilities=moran_death()):
-    #pass
+### Transition Probability Computers   
     
 # 3d Moran process    
 def multivariate_moran_transitions(N, fitness_landscape):
