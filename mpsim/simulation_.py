@@ -87,14 +87,14 @@ def fitness_proportionate_selection(csums, r=None):
         if x >= r:
             return j
 
-def simulation(cache, initial_state, random_seed=None, max_steps=None):
+def simulation(cache, initial_state, random_seed=None, max_iterations=None):
     """
     Generates simulated trajectories for the Markov process that produced
     the simulation cache object.
     """
 
-    if not max_steps:
-        max_steps = float("inf")
+    if not max_iterations:
+        max_iterations = float("inf")
     if not random_seed:
         random_seed = generators.random_seed()
     # Generate a new random value source (for reproducibility)
@@ -108,7 +108,7 @@ def simulation(cache, initial_state, random_seed=None, max_steps=None):
     for iteration in itertools.count(1):
         ## Check exit conditions
         # Did we exceed the maximum number of states
-        if iteration >= max_steps:
+        if iteration >= max_iterations:
             break
         # Have we reached an absorbing state?
         if cache.absorbing[state]:
@@ -130,7 +130,8 @@ def batched_simulation(params):
 
     return simulation(*params)
 
-def batched_simulations(param_gen, iters_gen, processes=None, callback=None):
+def batched_simulations(param_gen, iters_gen, sim_func=batched_simulation,
+                        processes=None, callback=None):
     """
     Computes simulated trajectories using multiple processors, if available, in
     batches using multiprocessing.
@@ -144,7 +145,7 @@ def batched_simulations(param_gen, iters_gen, processes=None, callback=None):
         params = itertools.islice(param_gen, 0, iters)
         pool = multiprocessing.Pool(processes=processes)
         try:
-            results = pool.map(batched_simulation, params)
+            results = pool.map(sim_func, params)
             pool.close()
             pool.join()
         except KeyboardInterrupt:
