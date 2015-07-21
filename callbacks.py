@@ -1,17 +1,17 @@
 ### Simulation Callbacks
 
-from multiset import Multiset
+from collections import Counter
 
 # The following class and function look at the simulations and estimate absorption probabilities for the Moran Process.
 
 class ConvergentsCounter(object):
     """Counts final states of runs. Useful for testing for known convergence rates."""
     def __init__(self):
-        self.counts = Multiset()
+        self.counts = Counter()
 
     def add(self, results):
         for seed, length, history in results:
-            self.counts.add(history[-1])
+            self.counts.update(history[-1])
 
 def analyze_fixations(counts):
     d = {'A': 0, 'B': 0}
@@ -42,11 +42,11 @@ class RunLengthRecorder(object):
 class StateCounter(object):
     """Aggregates states over runs to measure occupation times."""
     def __init__(self):
-        self.counts = Multiset()
+        self.counts = Counter()
     
     def add(self, results):
         for seed, length, history in results:
-            self.counts.add_many(history)
+            self.counts.update(history)
     
 ### The following code caches full run results - use writer.write as the call_back on a ResultsWriter object.
 
