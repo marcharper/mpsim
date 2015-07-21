@@ -6,23 +6,6 @@ def print_results(results, filename=None):
     for result in results:
         print result
 
-#class ConvergentsCounter(object):
-    #"""Counts final states of runs. Useful for testing for known convergence rates."""
-    #def __init__(self):
-        #self.counts = Counter()
-
-    #def add(self, results):
-        #for seed, length, history in results:
-            #self.counts.update(history[-1])
-
-#def analyze_fixations(counts):
-    #d = {'A': 0, 'B': 0}
-    #for k,v in counts.items():
-        #if k[0] == 0:
-            #d['A'] += v
-        #else:
-            #d['B'] += v
-    #print normalize_distribution(d)
 
 class RunLengthRecorder(object):
     """
@@ -35,7 +18,8 @@ class RunLengthRecorder(object):
     def add(self, results):
         for seed, length, history in results:
             # the seed is the first result; don't count that.
-            self.lengths.append(length)    
+            self.lengths.append(length)
+
 
 class StateCounter(object):
     """
@@ -49,9 +33,10 @@ class StateCounter(object):
         for seed, length, history in results:
             self.counts.update(history)
 
+
 class ResultsWriter(object):
     """
-    Convenience callback to save data to disk on the fly.
+    Convenience callback to save data in CSV format to disk on-the-fly.
     """
 
     def __init__(self, filename):
