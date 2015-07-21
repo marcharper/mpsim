@@ -13,6 +13,11 @@ from graph import Graph
 
 from incentives import *
 
+
+import matplotlib
+font = {'size': 22}
+matplotlib.rc('font', **font)
+
 ## This module contains functions to compute the expected KL divergence for each state of a Markov process.
 
 def main_3d(N, fitness_landscape):
@@ -33,7 +38,17 @@ def main_3d(N, fitness_landscape):
         #if s > 1e-10:
             #s = math.pow(s, 1./2)
             e_kl[(source[0], source[1])] = s
-    ternary.heatmap(e_kl, N)
+            #e_kl[(source[0], source[1])] = -math.log(s)
+    #new_d = dict()
+    #for k,v in e_kl.items():
+        #a,b = k
+        #print a, b
+        #if (a == 1) or (b == 1) or ((a+b) == N-1):
+            #print a, b
+            #continue
+        #else:
+            #new_d[k] = v
+    ternary.heatmap(e_kl, N, boundary=False)
     
 def main_2d(N, incentive):
     #print normalize(incentive(normalize(x)))
@@ -54,6 +69,7 @@ def main_2d(N, incentive):
         #if s > 1e-10:
             #s = math.pow(s, 1./2)
         e_kl[source] = s
+        print s
     xs = []
     ys = []
     for k in range(2, N-1):
@@ -97,39 +113,54 @@ def ess(m, N):
     d = m[1][1]
     x = float(d - b + float(a - d) / N) / ((d - b) + (a - c))
     return numpy.array([x, 1.-x])
-    
+
+
 if __name__ == '__main__':
     N = int(sys.argv[1])
-    #kl_movie(N)
+    ###kl_movie(N)
     
     ## Sample Landscapes, 2D ##
     ## Static Landscape
-    r = .1
-    fitness_landscape = moran.fitness_static(r)
+    #r = .1
+    #fitness_landscape = moran.fitness_static(r)
     ## Prisoner's Dilemma
     #m = [[0,1],[0,2]]
-    # Hawk-Dove
+    #Hawk-Dove
     #m = [[1,2],[2,1]]
+    m = [[28, 2],[20, -10]]
+    #m = [[40, 14],[32, 2]]
     # Coordination
     #m = [[2,1], [1,2]]
     #m = [[20,0], [17,1]]
     #m = [[1,2],[5,1]]
-    #fitness_landscape = moran.linear_fitness_landscape(m)
+    
+    m = [[20, 1], [7, 10]]
+    
+    fitness_landscape = moran.linear_fitness_landscape(m)
     #x = ess(m, N)
     #print x, N * x 
 
-    incentive=replicator_incentive_power(fitness_landscape, 0.)
-    main_2d(N, incentive)    
-    incentive=replicator_incentive(fitness_landscape)
+    #incentive=replicator_incentive_power(fitness_landscape, 0.)
+    #main_2d(N, incentive)    
+    #incentive=replicator_incentive(fitness_landscape)
+    #incentive=replicator_incentive(fitness_landscape)    
+    
+    #incentive=fermi_incentive(fitness_landscape, eta=10)
+
+    incentive = replicator(fitness_landscape, q=0)
+    
     main_2d(N, incentive)
-    incentive = fermi_incentive(fitness_landscape, 1)
-    main_2d(N, incentive)    
-    incentive = logit_incentive(fitness_landscape, 1)
-    main_2d(N, incentive)
+    
+    pyplot.show()
+    
+    #incentive = fermi_incentive(fitness_landscape, 1)
+    #main_2d(N, incentive)    
+    #incentive = logit_incentive(fitness_landscape, 1)
+    #main_2d(N, incentive)
     #incentive = logit_incentive(fitness_landscape, 10)
     #main_2d(N, incentive)
-    incentive=best_reply_incentive(fitness_landscape)
-    main_2d(N, incentive)    
+    #incentive=best_reply_incentive(fitness_landscape)
+    #main_2d(N, incentive)    
 
     #incentive=replicator_incentive_power(fitness_landscape, 0.6)
     #main_2d(N, incentive)
@@ -144,20 +175,23 @@ if __name__ == '__main__':
     #incentive=replicator_incentive_power(fitness_landscape, 3)
     #main_2d(N, incentive)      
 
-    pyplot.show()
+    #pyplot.show()
 
     ## Sample Landscapes, 3D ##
     #m = [[0,1,-1],[1,0,-3],[-1,3,0]]
     #m = [[0,1,-1],[1,0,-2],[-1,2,0]]
-    ##m = [[0,0,-1],[0,0,-2],[-1,1,0]]
+    #m = [[0,0,-1],[0,0,-2],[-1,1,0]]
     #m = [[0,0,-2],[0,0,-1],[-1,1,0]]
     #m = [[0,0,1],[0,0,0],[1,1,0]]    
     #m = [[0,0,-1],[0,0,-2],[-1,1,0]]
     #m = [[0,1,1],[0,1,1],[1,0,0]]
     #a = 1.
-    #b = -1.
+    #b = -2.
     #m = moran.rock_scissors_paper(a=a, b=b)
  
-    #fitness_landscape = moran.linear_fitness_landscape(m, beta=1.)
+    #m = [[2,4,4],[0,3,5],[0,1,4]]
+ 
+    #fitness_landscape = moran.linear_fitness_landscape(m, beta=0.1)
     #main_3d(N, fitness_landscape)
+    #pyplot.show()
     

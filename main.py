@@ -138,14 +138,14 @@ def two_type_moran_process_simulations(N=40, fitness_landscape=None, initial_sta
     runs = basic_simulation_run(cache, igen, initial_state_generator, call_backs=None, max_steps=None, short_report=False)
     return runs 
 
-## Run length estimators ##  
-    
+## Run length estimators ##
+
 def run_lengths(cache, iteration_gen, initial_state_generator, max_steps=1000000):
     rlc = callbacks.RunLengthRecorder()
     call_backs = [rlc.add]
     basic_simulation_run(cache, igen, initial_state_generator, call_backs=call_backs, max_steps=max_steps, short_report=True)
     return rlc.lengths
-    
+
 def run_length_batches(Ns=range(6, 60, 3), brange=numpy.arange(0,5.01, 0.1), a=1, iterations=16000, per_run=800, output_directory="rsp_run_lengths"):
     """Cache data for RSP games for later analysis."""
     import gc
@@ -167,7 +167,7 @@ def run_length_batches(Ns=range(6, 60, 3), brange=numpy.arange(0,5.01, 0.1), a=1
             for l in lengths:
                 print >> handle, l
 
-## Relative state occupancies ##                
+## Relative state occupancies ##
 
 def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generator, verbose=True):
     # Callbacks
@@ -182,7 +182,7 @@ def state_occurances(N, fitness_landscape, iteration_gen, initial_state_generato
     # Run Simulations
     basic_simulation_run(cache, iteration_gen, initial_state_generator, call_backs=call_backs, max_steps=None)
     return counter.counts
-    
+
 ## This test produces single images for given matrices for a 3D Moran process.        
 def three_player_state_occurances_plot(N, iterations, per_run):
     igen = generators.iterations_generator(iterations, per_run)
@@ -193,7 +193,7 @@ def three_player_state_occurances_plot(N, iterations, per_run):
     ternary_dict = ternary.state_counts_to_ternary(counts, N)
     ternary.heatmap(ternary_dict, N, cmap_name="BrBG")
     #pylab.savefig(str(i) + ".png")
-        
+
 def two_player_state_occurances(N, fitness_landscape, iterations=1000, per_run=100):
     igen = generators.iterations_generator(iterations, per_run)
     #initial_state_generator = generators.constant_generator((N//2,N//2))

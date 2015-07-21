@@ -48,9 +48,9 @@ class Graph(object):
         self._edges = new_edges
 
 class RandomGraph(object):
-    """Random Graph class in which there is a probability p of an edge between any two vertices. Edge existence is drawn on each request (i.e. not determined once at initiation."""
+    """Random Graph class in which there is a probability p of an edge between any two vertices. Edge existence is drawn on each request (i.e. not determined once at initiation)."""
     def __init__(self, num_vertices, p):
-        self._vertices = set(range(num_vertices))
+        self._vertices = list(range(num_vertices))
         self.p = p
         
     def vertices(self):
@@ -63,3 +63,11 @@ class RandomGraph(object):
             if q <= self.p:
                 outs.append(v)
         return outs
+    
+    def in_vertices(self, source):
+        ins = []
+        for v in self._vertices:
+            q = random.random()
+            if q <= self.p:
+                ins.append(v)
+        return ins

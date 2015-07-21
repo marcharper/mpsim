@@ -10,6 +10,9 @@ from helpers import ensure_digits
 from graph import Graph
 from incentives import *
 
+from scipy.misc import logsumexp
+from numpy import log, exp
+
 """Compute stationary distributions for Markov processes."""
 
 class Cache(object):
@@ -25,9 +28,9 @@ class Cache(object):
         for (index, vertex) in enumerate(vertices):
             self.enum[vertex] = index
             self.inv_enum.append(vertex)
-            # Is node terminating?
-            if len(graph.out_dict(vertex)) == 0:
-                self.terminals.append(index)
+            ### Is node terminating?
+            ##if len(graph.out_dict(vertex)) == 0:
+                ##self.terminals.append(index)
         # Cache in_neighbors
         for vertex in vertices:
             in_dict = graph.in_dict(vertex)
@@ -48,6 +51,26 @@ def stationary_distribution_generator(cache, initial_state=None):
                 new_rank += v * ranks[i]
             new_ranks.append(new_rank)
         yield new_ranks
+        ranks = new_ranks
+
+def log_stationary_distribution_generator(cache, initial_state=None):
+    """Generator for the stationary distribution of a Markov chain, produced by iteration of the transition matrix."""
+    N = len(cache.inv_enum)
+    if not initial_state:
+        ranks = [-log(float(N))]*N
+    else:
+        ranks = initial_state        
+    while True:
+        new_ranks = []
+        for node in range(N):
+            l = []
+            for i, v in cache.in_neighbors[node]:
+                l.append(v + ranks[i])
+                #l.append(ranks[i])
+                #new_rank += v * ranks[i]
+            #new_ranks.append(new_rank)
+            new_ranks.append(logsumexp(l))
+        yield exp(new_ranks)
         ranks = new_ranks
 
 def three_dim(N, iterations, m):    

@@ -183,7 +183,8 @@ def moran_simulation_transitions(N, fitness_landscape=None, incentive=None):
     for a in range(1, N):
         b = float(N - a)
         if incentive:
-            birth = normalize(incentive(normalize([a,b])))
+            #birth = normalize(incentive(normalize([a,b])))
+            birth = normalize(incentive([a,b]))
         else:
             birth = normalize(multiply_vectors([a, b], fitness_landscape([a,b])))
         up = birth[0] * b / (a + b)

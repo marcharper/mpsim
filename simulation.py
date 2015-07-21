@@ -34,9 +34,9 @@ def parameter_generator(cache, initial_state_gen, seed_gen=None, short_report=Fa
     if not seed_gen:
         seed_gen = generators.random_seeds()
     return itertools.izip(cache_gen, initial_state_gen, seed_gen, report_gen, max_steps_gen, reverse_enumeration_gen)
-        
+
 ### Cache and compilation. For efficiency, repeatedly needed calculations are cached.
-            
+
 def compile_edges(edges, verbose=True, cache_to_disk=False, filename=None):
     """This function takes a lists of edges and returns a compiled SimulationCache object to improve efficiency for batches of simulations."""
     if verbose:
