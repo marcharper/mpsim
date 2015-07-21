@@ -92,9 +92,9 @@ trajectories. The best way to do this is with a method of a class that keeps
 track of the lengths (this is in `mpsim.callbacks`):
 
 ```
-    class RunLengthRecorder(object):
+    class LengthRecorder(object):
         """
-        Records only length of run.
+        Records only length of trajectories.
         """
 
         def __init__(self):
@@ -102,7 +102,6 @@ track of the lengths (this is in `mpsim.callbacks`):
 
         def add(self, results):
             for seed, length, history in results:
-                # the seed is the first result; don't count that.
                 self.lengths.append(length)
 ```
 
@@ -110,19 +109,21 @@ Then you would pass the `add` method of an instance as the callback, like so:
 
 ```
     callback_obj = mpsim.callbacks.RunLengthRecorder()
-    callback = callback,add
+    callback = callback.add
 ```
 
 `mpsim` will then pass the trajectories to the add function as each batch is
 generated. Note that this is done syncronyously at the end of each batch, not
 asynchronously as each trajectory is generated, so the callback does not need
 to be thread-safe but the processing does not utilize multiple cores. If you
-want to process on the fly with something thread-safe, you need to write a custom `sim_func` and pass it in as a keyword argument to `batched_simulations`.
+want to process on the fly with something thread-safe, you need to write a custom `sim_func` and pass it in as a keyword argument to `batched_simulations` (see
+[simulations](/mpsim/simulation_.py) ).
 
 Putting it all together:
 
 ```
     import mpsim
+    from matplotlib import pyplot
 
     edges = [('a', 'b', 0.5), ('a', 'a', 0.5), ('b', 'a', 0.8),
                 ('b', 'b', 0.1), ('b', 'c', 0.1)]
@@ -137,6 +138,8 @@ Putting it all together:
     results = mpsim.batched_simulations(parameter_gen, iters_gen,
                                         callback=callback_obj.add)
     lengths = callback_obj.lengths
+
+    # Plot the lengths as a histogram
     pyplot.hist(lengths, bins=30)
     pyplot.show()
 ```

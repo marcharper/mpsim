@@ -7,9 +7,9 @@ def print_results(results, filename=None):
         print result
 
 
-class RunLengthRecorder(object):
+class LengthRecorder(object):
     """
-    Records only length of run.
+    Records only length of trajectories.
     """
 
     def __init__(self):
@@ -17,7 +17,6 @@ class RunLengthRecorder(object):
 
     def add(self, results):
         for seed, length, history in results:
-            # the seed is the first result; don't count that.
             self.lengths.append(length)
 
 
