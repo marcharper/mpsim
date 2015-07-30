@@ -18,7 +18,7 @@ setup(
     license = "MIT",
     keywords = "markov process simulation",
     url = "https://github.com/marcharper/mpsim",
-    packages=['stationary'],
+    packages=['mpsim'],
     install_requires=[],
     long_description=read('README.md'),
 )
