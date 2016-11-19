@@ -26,16 +26,18 @@ associated to the process.
 
 For example:
 
+```python
     import mpsim
     edges = [('a', 'b', 0.5), ('a', 'a', 0.5), ('b', 'a', 0.8),
              ('b', 'b', 0.1), ('b', 'c', 0.1)]
     cache = mpsim.compile_edges(edges)
     random_seed, iterations, trajectory = mpsim.simulation(cache, initial_state='a')
     print "".join(trajectory)
+```
 
 This prints something like (depending on the random seed)
 
-```
+```python
 aaaaabababababaababababababaaaaaaabababaaaaaababaabc
 ```
 
@@ -63,7 +65,7 @@ To limit memory usage, you can specify the number of trajectories to be
 generated in each batch (before passing to a callback). To do so, use
 `mpsim.generators.iterations_generator` as follows:
 
-```
+```python
     mpsim.generators.iterations_generator(total, per_run=1000)
 ```
 
@@ -73,13 +75,13 @@ batches of `per_run`, split over the available processing cores.
 You also need to specify the initial state to use. This can be the same state
 every time, in which case you can use:
 
-```
+```python
     initial_state_gen = mpsim.generators.constant_generator('a')
 ```
 
 or a random state, in which case you could use:
 
-```
+```python
     initial_state_gen = mpsim.generators.constant_generator(states)
 ```
 
@@ -91,7 +93,7 @@ For example, perhaps you are only interested in the total length of the
 trajectories. The best way to do this is with a method of a class that keeps
 track of the lengths (this is in `mpsim.callbacks`):
 
-```
+```python
     class LengthRecorder(object):
         """
         Records only length of trajectories.
@@ -107,7 +109,7 @@ track of the lengths (this is in `mpsim.callbacks`):
 
 Then you would pass the `add` method of an instance as the callback, like so:
 
-```
+```python
     callback_obj = mpsim.callbacks.RunLengthRecorder()
     callback = callback_obj.add
 ```
@@ -121,7 +123,7 @@ want to process on the fly with something thread-safe, you need to write a custo
 
 Putting it all together:
 
-```
+```python
     import mpsim
     from matplotlib import pyplot
 
